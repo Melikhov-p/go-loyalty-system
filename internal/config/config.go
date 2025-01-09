@@ -34,7 +34,7 @@ const (
 	defaultMigrationPath    = "./internal/migrations/"
 	defaultDBContextTimeout = 15 * time.Second
 	defaultTokenLifeTime    = 24 * time.Hour
-	defaultWorkerPingTasks  = 2 * time.Second
+	defaultWorkerPingTasks  = 500 * time.Millisecond
 )
 
 func BuildConfig() *Config {
