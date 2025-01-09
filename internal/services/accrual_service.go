@@ -39,6 +39,7 @@ func (as *AccrualService) CheckOrdersStatus(orders []*models.WatchedOrder) ([]*m
 
 		if accrualResp.Status != order.AccrualOrderStatus {
 			order.AccrualOrderStatus = accrualResp.Status
+			order.AccrualPoints = accrualResp.Accrual
 			updatedOrders = append(updatedOrders, order)
 		}
 	}

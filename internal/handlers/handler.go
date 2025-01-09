@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/Melikhov-p/go-loyalty-system/internal/config"
 	"github.com/Melikhov-p/go-loyalty-system/internal/services"
@@ -32,6 +33,10 @@ type OrderHandlers struct {
 	cfg          *config.Config
 	orderService *services.OrderService
 }
+
+var (
+	ErrGettingContextUser error = errors.New("error getting user model from context")
+)
 
 func SetupHandlers(logger *zap.Logger, cfg *config.Config, db *sql.DB) *Handlers {
 	return &Handlers{

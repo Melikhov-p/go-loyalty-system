@@ -1,6 +1,6 @@
 module github.com/Melikhov-p/go-loyalty-system
 
-go 1.23.2
+go 1.22
 
 require (
 	github.com/pressly/goose v2.7.0+incompatible

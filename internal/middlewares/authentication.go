@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/Melikhov-p/go-loyalty-system/internal/contextkeys"
 	"github.com/Melikhov-p/go-loyalty-system/internal/models"
 	"github.com/Melikhov-p/go-loyalty-system/internal/services"
 	"go.uber.org/zap"
@@ -38,7 +39,7 @@ func (m *Middleware) WithAuth(handler http.Handler) http.Handler {
 			}
 		}
 
-		ctxWithUser := context.WithValue(r.Context(), "user", user)
+		ctxWithUser := context.WithValue(r.Context(), contextkeys.ContextUserKey, user)
 		handler.ServeHTTP(w, r.WithContext(ctxWithUser))
 	})
 }

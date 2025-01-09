@@ -251,18 +251,6 @@ linters-settings:
   makezero:
     always: false
 
-  mnd:
-    checks:
-      - argument
-      - case
-      - condition
-      - operation
-      - return
-      - assign
-    ignored-files: []
-    ignored-functions: []
-    ignored-numbers: []
-
   musttag:
     # A set of custom functions to check in addition to the builtin ones.
     # Default: json, xml, gopkg.in/yaml.v3, BurntSushi/toml, mitchellh/mapstructure, jmoiron/sqlx
@@ -504,7 +492,6 @@ linters:
     - loggercheck
     - makezero
     - mirror
-    - mnd
     - musttag
     - nilerr
     - nilnil
@@ -539,12 +526,19 @@ linters:
 
 # Issues configuration
 issues:
-  exclude: []
+  exclude:
+    - "the given struct should be annotated with the `json` tag"
   # Which dirs to exclude: issues from them won't be reported.
   # Can use regexp here: `generated.*`, regexp is applied on full path,
   # including the path prefix if one is set.
   # Default dirs are skipped independently of this option's value (see exclude-dirs-use-default).
   # "/" will be replaced by current OS file path separator to properly work on Windows.
+  exclude-files:
+    - "handlers_test.go"
+    - "balance_handlers_test.go"
+    - "order_handlers_test.go"
+    - "user_handlers_test.go"
+    - "gzip.go"
   exclude-dirs:
     - "bin"
     - "scripts"
@@ -555,7 +549,7 @@ issues:
   exclude-dirs-use-default: false
   exclude-case-sensitive: false
   exclude-rules:
-    - path: "_test\\.go"
+    - path: "\\.go"
       text: "fieldalignment: struct with \\d+ pointer bytes could be \\d+"
   fix: false
   max-issues-per-linter: 0

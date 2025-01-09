@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/Melikhov-p/go-loyalty-system/internal/contextkeys"
 	"github.com/Melikhov-p/go-loyalty-system/internal/models"
 	"github.com/Melikhov-p/go-loyalty-system/internal/repository"
 	"github.com/Melikhov-p/go-loyalty-system/internal/services"
@@ -17,7 +18,12 @@ func (bh *BalanceHandlers) GetBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value("user").(*models.User)
+	user, ok := r.Context().Value(contextkeys.ContextUserKey).(*models.User)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		bh.logger.Error(ErrGettingContextUser.Error())
+		return
+	}
 	if !user.AuthInfo.IsAuthenticated {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -44,7 +50,12 @@ func (bh *BalanceHandlers) RequestWithdraw(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user := r.Context().Value("user").(*models.User)
+	user, ok := r.Context().Value(contextkeys.ContextUserKey).(*models.User)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		bh.logger.Error(ErrGettingContextUser.Error())
+		return
+	}
 	if !user.AuthInfo.IsAuthenticated {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -97,7 +108,12 @@ func (bh *BalanceHandlers) GetWithdrawals(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user := r.Context().Value("user").(*models.User)
+	user, ok := r.Context().Value(contextkeys.ContextUserKey).(*models.User)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		bh.logger.Error(ErrGettingContextUser.Error())
+		return
+	}
 	if !user.AuthInfo.IsAuthenticated {
 		w.WriteHeader(http.StatusUnauthorized)
 		return

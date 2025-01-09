@@ -11,17 +11,26 @@ import (
 	"go.uber.org/zap"
 )
 
+type OrderFinalStatus string
+
+const (
+	invalid   OrderFinalStatus = "INVALID"
+	processed OrderFinalStatus = "PROCESSED"
+)
+
 type OrderService struct {
-	logger    *zap.Logger
-	cfg       *config.Config
-	OrderRepo *repository.OrderRepo
+	logger         *zap.Logger
+	cfg            *config.Config
+	OrderRepo      *repository.OrderRepo
+	BalanceService *BalanceService
 }
 
 func NewOrderService(logger *zap.Logger, cfg *config.Config, db *sql.DB) *OrderService {
 	return &OrderService{
-		logger:    logger,
-		cfg:       cfg,
-		OrderRepo: repository.NewOrderRepo(logger, cfg, db),
+		logger:         logger,
+		cfg:            cfg,
+		OrderRepo:      repository.NewOrderRepo(logger, cfg, db),
+		BalanceService: NewBalanceService(logger, cfg, db),
 	}
 }
 
@@ -84,6 +93,30 @@ func (os *OrderService) UpdateOrdersStatus(ctx context.Context, orders []*models
 	err := os.OrderRepo.UpdateOrdersStatus(ctx, orders)
 	if err != nil {
 		return fmt.Errorf("error updating orders status %w", err)
+	}
+
+	for _, order := range orders {
+		if order.AccrualOrderStatus == string(invalid) || order.AccrualOrderStatus == string(processed) {
+			os.logger.Debug("order in final status",
+				zap.String("ORDER NUMBER", order.OrderNumber),
+				zap.String("ORDER FINAL STATUS", order.AccrualOrderStatus))
+
+			err = os.OrderRepo.StopWatchOrder(ctx, order)
+			if err != nil {
+				os.logger.Error("error stopping watch order",
+					zap.String("NUMBER", order.OrderNumber),
+					zap.Error(err))
+			}
+
+			err = os.BalanceService.IncreaseBalance(ctx, order.UserID, order.AccrualPoints)
+			if err != nil {
+				os.logger.Error("error increasing user balance",
+					zap.Int("USERID", order.UserID),
+					zap.Float64("DIFF", order.AccrualPoints),
+					zap.Error(err),
+				)
+			}
+		}
 	}
 
 	return nil

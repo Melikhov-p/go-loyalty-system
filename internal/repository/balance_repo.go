@@ -98,7 +98,7 @@ func (br *BalanceRepo) Withdraw(
 		historyQuery,
 		order.Number,
 		sum,
-		time.Now().Format("2006-01-02 15:04:05"),
+		time.Now().Format(time.DateTime),
 		user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("error executing context for history query %w", err)
@@ -140,7 +140,18 @@ func (br *BalanceRepo) GetUserHistory(ctx context.Context, user *models.User) ([
 		return nil, ErrEmptyBalanceHistory
 	}
 
-	return history, err
+	return history, nil
+}
+
+func (br *BalanceRepo) IncreaseBalanceByUserID(ctx context.Context, id int, diff float64) error {
+	query := `UPDATE balance SET current = current + $1 WHERE user_id = $2`
+
+	_, err := br.db.ExecContext(ctx, query, diff, id)
+	if err != nil {
+		return fmt.Errorf("error executing context for update user balance %w", err)
+	}
+
+	return nil
 }
 
 func NewBalanceRepo(logger *zap.Logger, cfg *config.Config, db *sql.DB) *BalanceRepo {

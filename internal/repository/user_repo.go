@@ -62,6 +62,9 @@ func (ur *UserRepo) AddUser(ctx context.Context, login string, passHash string) 
 	defer func() {
 		_ = tx.Rollback()
 	}()
+	if err != nil {
+		return nil, fmt.Errorf("error starting transaction for create user %w", err)
+	}
 
 	row := tx.QueryRowContext(ctxTimeout, query, login, passHash)
 

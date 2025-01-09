@@ -26,11 +26,21 @@ func NewBalanceService(logger *zap.Logger, cfg *config.Config, db *sql.DB) *Bala
 }
 
 func (bs *BalanceService) GetUserBalance(ctx context.Context, user *models.User) error {
-	return bs.BalanceRepo.GetUserBalance(ctx, user)
+	err := bs.BalanceRepo.GetUserBalance(ctx, user)
+	if err != nil {
+		return fmt.Errorf("error getting user balance %w", err)
+	}
+
+	return nil
 }
 
 func (bs *BalanceService) AddNewBalanceForUser(ctx context.Context, user *models.User) error {
-	return bs.BalanceRepo.AddNewBalanceForUser(ctx, user)
+	err := bs.BalanceRepo.AddNewBalanceForUser(ctx, user)
+	if err != nil {
+		return fmt.Errorf("error adding new balance for user %w", err)
+	}
+
+	return nil
 }
 
 func (bs *BalanceService) Withdraw(
@@ -39,8 +49,7 @@ func (bs *BalanceService) Withdraw(
 	user *models.User,
 	sum float64,
 ) (*models.Balance, error) {
-	switch {
-	case user.BalanceInfo.Current < sum:
+	if user.BalanceInfo.Current < sum {
 		return nil, ErrNotEnough
 	}
 
@@ -68,4 +77,13 @@ func (bs *BalanceService) GetUserWithdrawHistory(
 	}
 
 	return history, nil
+}
+
+func (bs *BalanceService) IncreaseBalance(ctx context.Context, userID int, diff float64) error {
+	err := bs.BalanceRepo.IncreaseBalanceByUserID(ctx, userID, diff)
+	if err != nil {
+		return fmt.Errorf("error increasing user balance %w", err)
+	}
+
+	return nil
 }

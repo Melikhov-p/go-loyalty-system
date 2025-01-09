@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Melikhov-p/go-loyalty-system/internal/contextkeys"
 	"github.com/Melikhov-p/go-loyalty-system/internal/models"
 	"github.com/Melikhov-p/go-loyalty-system/internal/repository"
 	"go.uber.org/zap"
@@ -17,7 +18,12 @@ func (oh *OrderHandlers) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value("user").(*models.User)
+	user, ok := r.Context().Value(contextkeys.ContextUserKey).(*models.User)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		oh.logger.Error(ErrGettingContextUser.Error())
+		return
+	}
 	if !user.AuthInfo.IsAuthenticated {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -28,7 +34,7 @@ func (oh *OrderHandlers) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		_ = r.Body.Close()
 	}()
 
-	if string(orderNumber) == "" {
+	if len(orderNumber) == 0 {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
@@ -41,11 +47,12 @@ func (oh *OrderHandlers) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 	err = oh.orderService.CreateOrder(r.Context(), string(orderNumber), user)
 	if err != nil {
-		if errors.Is(err, repository.ErrOrderByUserExist) {
+		switch {
+		case errors.Is(err, repository.ErrOrderByUserExist):
 			w.WriteHeader(http.StatusOK)
-		} else if errors.Is(err, repository.ErrOrderNumberExist) {
+		case errors.Is(err, repository.ErrOrderNumberExist):
 			w.WriteHeader(http.StatusConflict)
-		} else {
+		default:
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		oh.logger.Error("error creating new order", zap.String("OrderNumber", string(orderNumber)), zap.Error(err))
@@ -56,7 +63,12 @@ func (oh *OrderHandlers) CreateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (oh *OrderHandlers) GetOrders(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(*models.User)
+	user, ok := r.Context().Value(contextkeys.ContextUserKey).(*models.User)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		oh.logger.Error(ErrGettingContextUser.Error())
+		return
+	}
 	if !user.AuthInfo.IsAuthenticated {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -78,7 +90,9 @@ func (oh *OrderHandlers) GetOrders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if err = enc.Encode(&orders); err != nil {
+	var ordersResp models.OrdersResponse
+	ordersResp.Orders = orders
+	if err = enc.Encode(&ordersResp.Orders); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		oh.logger.Error("error encoding response to json", zap.Error(err))
 		return

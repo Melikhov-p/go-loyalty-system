@@ -13,13 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type OrderFinalStatus string
-
-const (
-	invalid   OrderFinalStatus = "INVALID"
-	processed OrderFinalStatus = "PROCESSED"
-)
-
 type OrderRepo struct {
 	logger *zap.Logger
 	cfg    *config.Config
@@ -29,7 +22,7 @@ type OrderRepo struct {
 func (or *OrderRepo) CreateOrder(ctx context.Context, orderNumber string, user *models.User) error {
 	query := `INSERT INTO "order" (number, uploaded_at, user_id) VALUES ($1, $2, $3)`
 
-	_, err := or.db.ExecContext(ctx, query, orderNumber, time.Now().Format("2006-01-02 15:04:05"), user.ID)
+	_, err := or.db.ExecContext(ctx, query, orderNumber, time.Now().Format(time.DateTime), user.ID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -148,7 +141,6 @@ func (or *OrderRepo) GetWatchedOrders(ctx context.Context) ([]*models.WatchedOrd
 
 func (or *OrderRepo) UpdateOrdersStatus(ctx context.Context, orders []*models.WatchedOrder) error {
 	query := `UPDATE "order" SET status = $1 WHERE number = $2`
-	stopWatchQuery := `UPDaTE watched_order SET trackable = false WHERE order_number = $1`
 
 	tx, err := or.db.Begin()
 	defer func() {
@@ -175,16 +167,17 @@ func (or *OrderRepo) UpdateOrdersStatus(ctx context.Context, orders []*models.Wa
 		if err != nil {
 			return fmt.Errorf("error exectunig context for update order status %w", err)
 		}
+	}
 
-		if order.AccrualOrderStatus == string(invalid) || order.AccrualOrderStatus == string(processed) {
-			_, err = tx.ExecContext(ctx, stopWatchQuery, order.OrderNumber)
-			if err != nil {
-				return fmt.Errorf("error stoping watch order with number %s: %w", order.OrderNumber, err)
-			}
-			or.logger.Debug("order in final status",
-				zap.String("ORDER NUMBER", order.OrderNumber),
-				zap.String("ORDER FINAL STATUS", order.AccrualOrderStatus))
-		}
+	return nil
+}
+
+func (or *OrderRepo) StopWatchOrder(ctx context.Context, order *models.WatchedOrder) error {
+	query := `UPDaTE watched_order SET trackable = false WHERE order_number = $1`
+
+	_, err := or.db.ExecContext(ctx, query, order.OrderNumber)
+	if err != nil {
+		return fmt.Errorf("error stoping watch order %s: %w", order.OrderNumber, err)
 	}
 
 	return nil

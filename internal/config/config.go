@@ -21,9 +21,9 @@ type Config struct {
 	RunAddr       string
 	AccrualAddr   string
 	LogLevel      string
-	TokenLifeTime time.Duration
 	DB            *configDB
 	Worker        *WorkerConfig
+	TokenLifeTime time.Duration
 }
 
 const (

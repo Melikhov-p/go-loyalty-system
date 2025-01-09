@@ -78,5 +78,4 @@ func (ow *OrderWatcher) Work() {
 
 func (ow *OrderWatcher) Stop() {
 	ow.stopCh <- 1
-	return
 }

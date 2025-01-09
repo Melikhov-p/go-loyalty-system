@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Melikhov-p/go-loyalty-system/internal/contextkeys"
 	"github.com/Melikhov-p/go-loyalty-system/internal/models"
 	"github.com/Melikhov-p/go-loyalty-system/internal/repository"
 	"github.com/Melikhov-p/go-loyalty-system/internal/services"
@@ -18,7 +19,12 @@ func (uh *UserHandlers) UserRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value("user").(*models.User)
+	user, ok := r.Context().Value(contextkeys.ContextUserKey).(*models.User)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		uh.logger.Error(ErrGettingContextUser.Error())
+		return
+	}
 	if user.AuthInfo.IsAuthenticated {
 		w.WriteHeader(http.StatusConflict)
 		return
@@ -66,7 +72,12 @@ func (uh *UserHandlers) UserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value("user").(*models.User)
+	user, ok := r.Context().Value(contextkeys.ContextUserKey).(*models.User)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		uh.logger.Error(ErrGettingContextUser.Error())
+		return
+	}
 	if user.AuthInfo.IsAuthenticated {
 		http.SetCookie(w, &http.Cookie{
 			Name:  "Token",

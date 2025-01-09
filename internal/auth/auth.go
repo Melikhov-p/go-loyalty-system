@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -54,7 +55,7 @@ func GetUserIDbyToken(tokenString string, secretKey string) (int, error) {
 	}
 
 	if !token.Valid {
-		return -1, fmt.Errorf("invalid token")
+		return -1, errors.New("invalid token")
 	}
 
 	return claims.UserID, nil
