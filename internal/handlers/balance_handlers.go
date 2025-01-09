@@ -77,7 +77,7 @@ func (bh *BalanceHandlers) RequestWithdraw(w http.ResponseWriter, r *http.Reques
 	order, err := bh.orderService.GetOrderByNumber(r.Context(), req.Order)
 	if err != nil {
 		if errors.Is(err, repository.ErrOrdersNotFound) {
-			bh.logger.Error("order with gibing number not found", zap.Error(err))
+			bh.logger.Error("order with giving number not found", zap.Error(err))
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}

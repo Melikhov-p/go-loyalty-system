@@ -2,11 +2,9 @@ package handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Melikhov-p/go-loyalty-system/internal/auth"
 	"github.com/Melikhov-p/go-loyalty-system/internal/config"
 	"github.com/Melikhov-p/go-loyalty-system/internal/logger"
 	"github.com/Melikhov-p/go-loyalty-system/internal/middlewares"
@@ -33,7 +31,7 @@ var (
 func TestHandlers(t *testing.T) {
 	getServer(t)
 	testUserID = 1
-	testOrderNumber = "99999999999"
+	testOrderNumber = "513"
 
 	t.Run("USER", func(t *testing.T) {
 		UserTestHandlers(t)
@@ -85,21 +83,6 @@ func getServer(t *testing.T) {
 	})
 
 	server = httptest.NewServer(r)
-}
-
-func getTestUser(db *sql.DB, login string, cfg *config.Config) (string, error) {
-	row := db.QueryRow(`INSERT INTO "user" (login, password) VALUES ($1, $2) RETURNING id`, login, "password")
-	var userID int
-	if err := row.Scan(&userID); err != nil {
-		return "", fmt.Errorf("error getting test user ID %w", err)
-	}
-
-	userToken, err := auth.BuildJWTToken(userID, cfg.DB.SecretKey, cfg.TokenLifeTime)
-	if err != nil {
-		return "", fmt.Errorf("error getting token for test user %w", err)
-	}
-
-	return userToken, nil
 }
 
 func delTestUser(db *sql.DB, login string) error {

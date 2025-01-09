@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	"github.com/Melikhov-p/go-loyalty-system/internal/config"
 	"github.com/Melikhov-p/go-loyalty-system/internal/models"
@@ -32,6 +33,41 @@ func NewOrderService(logger *zap.Logger, cfg *config.Config, db *sql.DB) *OrderS
 		OrderRepo:      repository.NewOrderRepo(logger, cfg, db),
 		BalanceService: NewBalanceService(logger, cfg, db),
 	}
+}
+
+// ValidateOrderNumber Функция для проверки номера заказа с использованием алгоритма Луна.
+func (os *OrderService) ValidateOrderNumber(orderNumber string) bool {
+	// Удаляем все нецифровые символы из номера заказа
+	var cleanNumber string
+	for _, char := range orderNumber {
+		if char >= '0' && char <= '9' {
+			cleanNumber += string(char)
+		}
+	}
+
+	// Проверяем, что номер заказа содержит только цифры
+	if len(cleanNumber) == 0 {
+		return false
+	}
+
+	sum := 0
+	reverse := false
+
+	// Итерируемся по цифрам номера заказа справа налево
+	for i := len(cleanNumber) - 1; i >= 0; i-- {
+		digit, _ := strconv.Atoi(string(cleanNumber[i]))
+		if reverse {
+			digit *= 2
+			if digit > 9 {
+				digit -= 9
+			}
+		}
+		sum += digit
+		reverse = !reverse
+	}
+
+	// Номер заказа валиден, если сумма делится на 10 без остатка
+	return sum%10 == 0
 }
 
 func (os *OrderService) CreateOrder(ctx context.Context, orderNumber string, user *models.User) error {

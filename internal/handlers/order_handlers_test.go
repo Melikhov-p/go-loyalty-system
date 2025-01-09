@@ -28,25 +28,25 @@ func OrderCreate(t *testing.T, userToken string) {
 	testCases := []testCase{
 		{
 			name:         "Happy create",
-			body:         "99999999999",
+			body:         testOrderNumber,
 			expectedCode: http.StatusAccepted,
 			expectedBody: "",
 		},
 		{
 			name:         "Order Already Exist",
-			body:         "99999999999",
+			body:         testOrderNumber,
 			expectedCode: http.StatusOK,
 			expectedBody: "",
 		},
 		{
 			name:         "Wrong order format",
-			body:         "",
+			body:         "123",
 			expectedCode: http.StatusUnprocessableEntity,
 			expectedBody: "",
 		},
 		{
 			name:         "Unauthorized",
-			body:         "99999999999",
+			body:         testOrderNumber,
 			expectedCode: http.StatusUnauthorized,
 			expectedBody: "",
 		},

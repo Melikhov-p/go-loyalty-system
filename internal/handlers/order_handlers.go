@@ -34,7 +34,7 @@ func (oh *OrderHandlers) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		_ = r.Body.Close()
 	}()
 
-	if len(orderNumber) == 0 {
+	if len(orderNumber) == 0 || !oh.orderService.ValidateOrderNumber(string(orderNumber)) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
@@ -59,6 +59,7 @@ func (oh *OrderHandlers) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	oh.logger.Debug("create order", zap.String("NUMBER", string(orderNumber)))
 	w.WriteHeader(http.StatusAccepted)
 }
 
