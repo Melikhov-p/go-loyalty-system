@@ -71,7 +71,7 @@ func (or *OrderRepo) GetOrderByNumber(ctx context.Context, orderNumber string) (
 
 	if err := row.Scan(&order.ID, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrOrdersNotFound
+			return nil, ErrOrderNumberNotFound
 		}
 		return nil, fmt.Errorf("error scannig row for order with number %s: %w", orderNumber, err)
 	}
@@ -140,7 +140,7 @@ func (or *OrderRepo) GetWatchedOrders(ctx context.Context) ([]*models.WatchedOrd
 }
 
 func (or *OrderRepo) UpdateOrdersStatus(ctx context.Context, orders []*models.WatchedOrder) error {
-	query := `UPDATE "order" SET status = $1 WHERE number = $2`
+	query := `UPDATE "order" SET status = $1, accrual = $2 WHERE number = $3`
 
 	tx, err := or.db.Begin()
 	defer func() {
@@ -163,7 +163,7 @@ func (or *OrderRepo) UpdateOrdersStatus(ctx context.Context, orders []*models.Wa
 	}
 
 	for _, order := range orders {
-		_, err = stmt.ExecContext(ctx, order.AccrualOrderStatus, order.OrderNumber)
+		_, err = stmt.ExecContext(ctx, order.AccrualOrderStatus, order.AccrualPoints, order.OrderNumber)
 		if err != nil {
 			return fmt.Errorf("error exectunig context for update order status %w", err)
 		}
