@@ -37,6 +37,7 @@ func (bh *BalanceHandlers) GetBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
+	w.Header().Set("Content-Type", "application/json")
 	if err = enc.Encode(user.BalanceInfo); err != nil {
 		bh.logger.Error("error encoding user balance to json", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)

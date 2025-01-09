@@ -71,19 +71,19 @@ func UserLogin(t *testing.T) {
 	testCases := []testCase{
 		{
 			name:         "Happy login",
-			body:         fmt.Sprintf(`{"login":"login", "password": "password"}`),
+			body:         `{"login":"login", "password": "password"}`,
 			expectedCode: http.StatusOK,
 			expectedBody: "",
 		},
 		{
 			name:         "Wrong Pass",
-			body:         fmt.Sprintf(`{"login":"login", "password": "pasrd"}`),
+			body:         `{"login":"login", "password": "pasrd"}`,
 			expectedCode: http.StatusUnauthorized,
 			expectedBody: "",
 		},
 		{
 			name:         "Empty Pass",
-			body:         fmt.Sprintf(`{"login":"login"}`),
+			body:         `{"login":"login"}`,
 			expectedCode: http.StatusBadRequest,
 			expectedBody: "",
 		},
