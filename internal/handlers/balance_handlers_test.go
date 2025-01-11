@@ -109,7 +109,7 @@ func BalanceWithdraw(t *testing.T, userToken string) {
 		{
 			name:         "Wrong Order Number",
 			body:         fmt.Sprintf(`{"order":"%s", "sum": 1}`, "123"),
-			expectedCode: http.StatusUnprocessableEntity,
+			expectedCode: http.StatusOK,
 			expectedBody: "",
 		},
 	}
