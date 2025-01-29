@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type WorkerConfig struct {
+type WorkDispatcherConfig struct {
 	PingInterval time.Duration
 }
 
@@ -22,7 +22,7 @@ type Config struct {
 	AccrualAddr   string
 	LogLevel      string
 	DB            *configDB
-	Worker        *WorkerConfig
+	Dispatcher    *WorkDispatcherConfig
 	TokenLifeTime time.Duration
 }
 
@@ -49,27 +49,33 @@ func BuildConfig() *Config {
 			SecretKey:      "3fac1504251a027465981346fb5b0d57d398e4df4a03253a4c7d1926e40e9907",
 			ContextTimeout: defaultDBContextTimeout,
 		},
-		Worker: &WorkerConfig{
+		Dispatcher: &WorkDispatcherConfig{
 			PingInterval: defaultWorkerPingTasks,
 		},
 	}
 
 	cfg.parseFlags()
 
-	// Если флаг не установлен проверяем переменные окружения
-	if cfg.RunAddr == defaultRunAddr {
+	// Если флаг не установлен проверяем переменные окружения, если там тоже пусто подставляем defaultValue
+	if cfg.RunAddr == "" {
 		if osv, ok := os.LookupEnv("RUN_ADDRESS"); ok {
 			cfg.RunAddr = osv
+		} else {
+			cfg.RunAddr = defaultRunAddr
 		}
 	}
-	if cfg.DB.DatabaseURI == defaultDatabaseURI {
+	if cfg.DB.DatabaseURI == "" {
 		if osv, ok := os.LookupEnv("DATABASE_URI"); ok {
 			cfg.DB.DatabaseURI = osv
+		} else {
+			cfg.DB.DatabaseURI = defaultDatabaseURI
 		}
 	}
-	if cfg.AccrualAddr == defaultAccrualAddr {
+	if cfg.AccrualAddr == "" {
 		if osv, ok := os.LookupEnv("ACCRUAL_SYSTEM_ADDRESS"); ok {
 			cfg.AccrualAddr = osv
+		} else {
+			cfg.AccrualAddr = defaultAccrualAddr
 		}
 	}
 
@@ -77,9 +83,9 @@ func BuildConfig() *Config {
 }
 
 func (c *Config) parseFlags() {
-	flag.StringVar(&c.RunAddr, "a", defaultRunAddr, "Server host and port")
-	flag.StringVar(&c.DB.DatabaseURI, "d", defaultDatabaseURI, "Database URI")
-	flag.StringVar(&c.AccrualAddr, "r", defaultAccrualAddr, "Accrual system host and port")
+	flag.StringVar(&c.RunAddr, "a", "", "Server host and port")
+	flag.StringVar(&c.DB.DatabaseURI, "d", "", "Database URI")
+	flag.StringVar(&c.AccrualAddr, "r", "", "Accrual system host and port")
 	flag.StringVar(&c.LogLevel, "l", defaultLogLevel, "Logging level")
 	flag.Parse()
 }

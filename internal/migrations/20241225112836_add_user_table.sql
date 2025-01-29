@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS "user" (
-    id SERIAL PRIMARY KEY,
+    id  INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     login VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );

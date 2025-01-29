@@ -38,7 +38,7 @@ func (uh *UserHandlers) UserRegister(w http.ResponseWriter, r *http.Request) {
 	var req models.UserLogPassRequest
 	if err := dec.Decode(&req); err != nil {
 		body, _ := io.ReadAll(r.Body)
-		uh.logger.Error("error decoding request", zap.Error(err), zap.String("RAW", string(body)))
+		uh.logger.Debug("error decoding request", zap.Error(err), zap.String("RAW", string(body)))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

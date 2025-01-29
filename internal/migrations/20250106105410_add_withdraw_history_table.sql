@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS withdraw_history (
-    id SERIAL PRIMARY KEY ,
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     order_number BIGINT NOT NULL ,
     sum numeric(10, 2),
     processed_at TIMESTAMP,

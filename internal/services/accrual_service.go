@@ -2,12 +2,17 @@ package services
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/Melikhov-p/go-loyalty-system/internal/config"
 	"github.com/Melikhov-p/go-loyalty-system/internal/models"
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
 )
+
+const defaultRetryAfter = 60
 
 type AccrualService struct {
 	logger *zap.Logger
@@ -21,28 +26,37 @@ func NewAccrualService(logger *zap.Logger, cfg *config.Config) *AccrualService {
 	}
 }
 
-func (as *AccrualService) CheckOrdersStatus(orders []*models.WatchedOrder) ([]*models.WatchedOrder, error) {
+func (as *AccrualService) CheckOrdersStatus(
+	order *models.WatchedOrder,
+) (*models.WatchedOrder, time.Duration, error) {
 	r := resty.New()
-	var updatedOrders []*models.WatchedOrder
 
-	for _, order := range orders {
-		url := fmt.Sprintf("%s/api/orders/%s", as.cfg.AccrualAddr, order.OrderNumber)
-		var accrualResp models.AccrualOrderResponse
+	url := fmt.Sprintf("%s/api/orders/%s", as.cfg.AccrualAddr, order.OrderNumber)
+	var accrualResp models.AccrualOrderResponse
 
-		resp, err := r.R().SetResult(&accrualResp).Get(url)
-		if err != nil {
-			return nil, fmt.Errorf("error checking order status %w", err)
-		}
-		if resp.IsError() {
-			return nil, fmt.Errorf("response error %v", resp.Status())
-		}
+	resp, err := r.R().SetResult(&accrualResp).Get(url)
+	if err != nil {
+		return nil, 0, fmt.Errorf("error checking order status %w", err)
+	}
+	if resp.IsError() {
+		if resp.StatusCode() == http.StatusTooManyRequests {
+			var seconds int
+			secondsStr := resp.Header().Get("Retry-After")
+			seconds, err = strconv.Atoi(secondsStr)
+			if err != nil {
+				as.logger.Error("error parse seconds Retry-After to string")
+				seconds = defaultRetryAfter
+			}
 
-		if accrualResp.Status != order.AccrualOrderStatus {
-			order.AccrualOrderStatus = accrualResp.Status
-			order.AccrualPoints = accrualResp.Accrual
-			updatedOrders = append(updatedOrders, order)
+			return nil, time.Second * time.Duration(seconds), ErrRetryAfter
 		}
+		return nil, 0, fmt.Errorf("response error %v", resp.Status())
 	}
 
-	return updatedOrders, nil
+	if accrualResp.Status != order.AccrualOrderStatus {
+		order.AccrualOrderStatus = accrualResp.Status
+		order.AccrualPoints = accrualResp.Accrual
+	}
+
+	return order, 0, nil
 }

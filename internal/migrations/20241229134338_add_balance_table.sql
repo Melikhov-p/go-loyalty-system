@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS balance(
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     current NUMERIC(10,2) DEFAULT 0,
     withdrawn NUMERIC(10,2) DEFAULT 0,
     user_id INTEGER,

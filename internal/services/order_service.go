@@ -122,7 +122,7 @@ func (os *OrderService) GetWatchedOrders(ctx context.Context) ([]*models.Watched
 	return orders, nil
 }
 
-func (os *OrderService) UpdateOrdersStatus(ctx context.Context, orders []*models.WatchedOrder) error {
+func (os *OrderService) UpdateOrderStatus(ctx context.Context, orders []*models.WatchedOrder) error {
 	ctx, cancel := context.WithTimeout(ctx, os.cfg.DB.ContextTimeout)
 	defer cancel()
 

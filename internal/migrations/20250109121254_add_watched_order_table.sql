@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS watched_order(
-    id SERIAL PRIMARY KEY ,
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     order_number VARCHAR(100) NOT NULL UNIQUE ,
     FOREIGN KEY (order_number) REFERENCES "order"(number) ON DELETE CASCADE ,
     user_id INTEGER,

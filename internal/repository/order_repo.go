@@ -140,6 +140,7 @@ func (or *OrderRepo) GetWatchedOrders(ctx context.Context) ([]*models.WatchedOrd
 }
 
 func (or *OrderRepo) UpdateOrdersStatus(ctx context.Context, orders []*models.WatchedOrder) error {
+	or.logger.Debug("repo get orders to update", zap.Any("ORDERS", orders))
 	query := `UPDATE "order" SET status = $1, accrual = $2 WHERE number = $3`
 
 	tx, err := or.db.Begin()

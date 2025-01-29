@@ -1,5 +1,7 @@
 package contextkeys
 
-type contextKey string
+type contextKey int
 
-const ContextUserKey contextKey = "user"
+const (
+	ContextUserKey contextKey = iota
+)
